@@ -7,7 +7,8 @@ In python most of the code is written in `controller.py` where you find the most
 * altitude controller: a controller that uses a down and down velocity to command thrust. 
 * yaw controller: a linear / proportional heading controller to yaw rate commands.
 * roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
-* lateral positon controller: a linear position controller using local north east position and local north/east velocity
+* lateral positon controller: a linear position controller using local north east position and local north/east velocity.
+
 
 ![Control Structure](https://github.com/CDA70/FCND_Controls/images/ControlStructure.png)
 
