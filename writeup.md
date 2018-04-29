@@ -107,7 +107,7 @@ where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converte
                             np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
 ```
 The rotation matrix looks like:
-![rotation matrix](/images/python-rotation-matrix)
+![rotation matrix](/images/python-rotation-matrix.png)
 
 ### C++
 
