@@ -12,25 +12,49 @@ In python most of the code is written in `controller.py` where you find the most
 * roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
 * lateral positon controller: a linear position controller using local north east position and local north/east velocity.
 
-![Control Structure](/images/ControlStructure.png)
+![Control Structure](/images/control1.png)
+
+The altitude controller breaks down as:
+![Control Structure](/images/control2.png)
+
 
 Lots of the underlying python code was provided by UDACITY as a collection of python package. Run the following command to activate the collection or environment: `source activate fcnd`.  
 The simulator works in the same way as in the previous projects and the start screen looks as:
 ![Controls Simulator](/images/python-simulator.png)
 
 running the code in python `python controls_flyer.py` result into the following:
-###simulator
-![result](/images/python-result.gif)
 
-###terminal output
+### terminal output
 ![result](/images/python-result-controls-flyer.png)
 
-In C++ on the other  
+
+
+
 
 
 
 ## 1. Implemented body rate control in python and C++.
-The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
+> The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
+
+#### python
+parameters: $k_{p-p}$, $k_{p-q}$, $k_{p-r}$
+
+The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
+$p_{\text{error}} = p_c - p$
+
+$\bar{u}_p= k_{p-p} p_{\text{error}}$
+
+$q_{\text{error}} = q_c - q$
+
+$\bar{u}_q= k_{p-q} q_{\text{error}}$
+
+$r_{\text{error}} = r_c - r$
+
+$\bar{u}_r= k_{p-r} r_{\text{error}}$
+
+
+
+
 
 ## Implement roll pitch control in python and C++.
 The controller should use the acceleration and thrust commands, in addition to the vehicle attitude to output a body rate command. The controller should account for the non-linear transformation from local accelerations to body rates. Note that the drone's mass should be accounted for when calculating the target angles.
