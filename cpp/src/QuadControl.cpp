@@ -152,19 +152,19 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
     //// c = - collThrustCmd / mass;
     
     float b_x = R(0,2);
-    float b_x_error = (accelCmd.x / - collThrustCmd / mass) - b_x;
+    float b_x_error = (accelCmd.x / (- collThrustCmd / mass)) - b_x;
     float b_x_commanded_dot = kpBank * b_x_error;
     
     
     float b_y = R(1,2);
-    float b_y_error = (accelCmd.y / - collThrustCmd / mass) - b_y;
+    float b_y_error = (accelCmd.y / (- collThrustCmd / mass)) - b_y;
     float b_y_commanded_dot = kpBank * b_y_error;
     
     //// rollPitchCmd.x = (R21 * bxCommandedDot - R11 * byCommandedDot) / R33
     //// rollPitchCmd.y = (R22 * bxCommandedDot - R12 * byCommandedDot) / R33
     //// rollPitchCmd.z = 0.0;
-    pqrCmd.x = (R(1,0) * b_x_commanded_dot - R(1,1) * b_y_commanded_dot) / R(2,2);
-    pqrCmd.y = (R(1,1) * b_x_commanded_dot - R(0,1) * b_y_commanded_dot) / R(2,2);
+    pqrCmd.x = (R(1,0) * b_x_commanded_dot - R(0,0) * b_y_commanded_dot) * (1 / R(2,2));
+    pqrCmd.y = (R(1,1) * b_x_commanded_dot - R(0,1) * b_y_commanded_dot) * (1 / R(2,2));
     pqrCmd.z = 0.0;
     
     
@@ -205,10 +205,10 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
     float p_term = kpPosZ * z_error;
     float d_term = kpVelZ * z_error_dot;
     
-    //integratedAltitudeError = integratedAltitudeError + (z_error * dt);
-    //float i_term = KiPosZ * integratedAltitudeError;
+    integratedAltitudeError = integratedAltitudeError + (z_error * dt);
+    float i_term = KiPosZ * integratedAltitudeError;
     
-    float u_1_bar = p_term + d_term + accelZCmd; // + i_term;
+    float u_1_bar = p_term + d_term + accelZCmd + i_term;
     
     float acceleration = (u_1_bar - CONST_GRAVITY) / b_z;
     
