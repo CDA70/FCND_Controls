@@ -1,6 +1,15 @@
 # WRITE-UP FCND CONTROLS
-In this project a low level flight controller is implemented in python further modfied in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
+In this project a low level flight controller is implemented in python and further modfied in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
+Nested control loops are commanded by using a position, velocity, attitude and body rates.
 
+In python most of the code is written in `controller.py` where you find the most important methods in the `NonLinearController` class. The methods that we implemented are:
+* body rate controller: a porportional controller on body rates.
+* altitude controller: a controller that uses a down and down velocity to command thrust. 
+* yaw controller: a linear / proportional heading controller to yaw rate commands.
+* roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
+* lateral positon controller: a linear position controller using local north east position and local north/east velocity
+
+![Control Structure](https://github.com/CDA70/FCND_Controls/images/ControlStructure.png)
 
 ## 1. Implemented body rate control in python and C++.
 The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
