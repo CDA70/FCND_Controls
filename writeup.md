@@ -1,4 +1,6 @@
 # WRITE-UP FCND CONTROLS
+In this project a low level flight controller is implemented in python further modfied in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
+
 
 ## 1. Implemented body rate control in python and C++.
 The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
