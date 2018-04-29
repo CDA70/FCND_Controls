@@ -9,8 +9,10 @@ In python most of the code is written in `controller.py` where you find the most
 * roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
 * lateral positon controller: a linear position controller using local north east position and local north/east velocity.
 
+![Control Structure](/images/ControlStructure.png)
 
-![Control Structure](https://github.com/CDA70/FCND_Controls/images/ControlStructure.png)
+> Note: Programming the controller wasn't easy, and especially setting the parameters provided the necessary headaches. 
+
 
 ## 1. Implemented body rate control in python and C++.
 The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
