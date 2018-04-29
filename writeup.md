@@ -126,6 +126,30 @@ The rotation matrix is as follows and be implement as:
 ```
 
 ### C++
+Parameters:
+`kpBank`
+
+The parameter `kpBank` and `kpPQR` shall be tuned, but as I mentioned earlier, it's hard and has taken me endless time, I still try to understand the result.
+The collThrustCmd is a force in Newton and must be converted in acceleration by dividing it by MASS. Keep in mind the downwards effect, hence the `-` negative in front of collThrustCmd
+
+``` c++
+    float b_x = R(0,2);
+    float b_x_error = (accelCmd.x / (- collThrustCmd / mass)) - b_x;
+    float b_x_commanded_dot = kpBank * b_x_error;
+    
+    
+    float b_y = R(1,2);
+    float b_y_error = (accelCmd.y / (- collThrustCmd / mass)) - b_y;
+    float b_y_commanded_dot = kpBank * b_y_error;
+    
+    //// rollPitchCmd.x = (R21 * bxCommandedDot - R11 * byCommandedDot) / R33
+    //// rollPitchCmd.y = (R22 * bxCommandedDot - R12 * byCommandedDot) / R33
+    //// rollPitchCmd.z = 0.0;
+    pqrCmd.x = (R(1,0) * b_x_commanded_dot - R(1,1) * b_y_commanded_dot) / R(2,2);
+    pqrCmd.y = (R(1,1) * b_x_commanded_dot - R(0,1) * b_y_commanded_dot) / R(2,2);
+    pqrCmd.z = 0.0;
+```
+
 
 ## Implement altitude control in python.
 The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.

@@ -63,7 +63,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "304"
             endingLineNumber = "304"
-            landmarkName = "QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel, V3F accelCmd)"
+            landmarkName = "QuadControl::YawControl(float yawCmd, float yaw)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -78,9 +78,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "363"
-            endingLineNumber = "363"
-            landmarkName = "QuadControl::YawControl(float yawCmd, float yaw)"
-            landmarkType = "7">
+            endingLineNumber = "363">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
