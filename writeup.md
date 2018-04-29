@@ -37,20 +37,10 @@ running the code in python `python controls_flyer.py` result into the following:
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
 
 #### python
-parameters: $k_{p-p}$, $k_{p-q}$, $k_{p-r}$
+parameters: ![param body rate](/images/python-param-body-rate.png)
 
 The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
-$p_{\text{error}} = p_c - p$
-
-$\bar{u}_p= k_{p-p} p_{\text{error}}$
-
-$q_{\text{error}} = q_c - q$
-
-$\bar{u}_q= k_{p-q} q_{\text{error}}$
-
-$r_{\text{error}} = r_c - r$
-
-$\bar{u}_r= k_{p-r} r_{\text{error}}$
+![equations body rate](/images/python-equations-body-rate)
 
 
 
