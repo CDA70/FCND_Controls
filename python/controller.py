@@ -190,7 +190,7 @@ class NonlinearController(object):
         
         rotation_matrix_update = np.array([[rotation_matrix[1,0], -rotation_matrix[0,0]],
                                            [rotation_matrix[1,1], -rotation_matrix[0,1]]]) / rotation_matrix[2,2]
-            #print('rotation_matrix_update: ', rotation_matrix_update)
+        
         rotation_rate = np.matmul(rotation_matrix_update,
                                   np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
             

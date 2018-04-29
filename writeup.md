@@ -31,12 +31,10 @@ running the code in python `python controls_flyer.py` result into the following:
 
 ## C++ intro
 > All implemented code can be found in QuadControl.cpp. 
+
 In my opinion, it was a lot more difficult and definitely not as straight forward after the python code. Especially the parameters is a work that I struggle with. The parameters can be found in the `config/QuadControlParams.txt` file. 
+
 For C++ a different simulation with more real limits is used. Each scenario in the simulation runs in a loop and each loop ends in a PASS or FAIL result. 
-
-Before we start implementing the controllers, the method `GenerateMotorCommands` needs to be modified. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
-![result](/images/cpp-motors-thrusts.png)
-
 
 ## 1. Implemented body rate control in python and C++.
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
@@ -64,26 +62,54 @@ The commanded roll, pitch, and yaw are collected by the body rate controller and
 ### C++
 parameters:
 `kpPQR =  80,80,5`
-Without the `kpPQR`, the drone keeps flipping. it's hard to find a good value, but at least I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and define the mass moment of inertia.
 
-The the commanded thrust is the mass moment of the inertia `*` the error of the desired body rates `*`` the kpPQR parameter
+Without the `kpPQR`, the drone keeps flipping. it's hard to find a good value, but i belive I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and defining the mass moment of inertia.
+
+The commanded thrust is the mass moment of the inertia `*` the error of the desired body rates `*`` the kpPQR parameter
 
 ``` C++
 V3F momentCmd;
 V3F Inertia;
 V3F p_error = pqrCmd - pqr;
     
-Inertia.x = Ixx;
-Inertia.y = Iyy;
-Inertia.z = Izz;
+float Inertia.x = Ixx;
+float Inertia.y = Iyy;
+float Inertia.z = Izz;
    
 momentCmd = Inertia * p_error * kpPQR;
 ```
 
 
-
 ## Implement roll pitch control in python and C++.
-The controller should use the acceleration and thrust commands, in addition to the vehicle attitude to output a body rate command. The controller should account for the non-linear transformation from local accelerations to body rates. Note that the drone's mass should be accounted for when calculating the target angles.
+> The controller should use the acceleration and thrust commands, in addition to the vehicle attitude to output a body rate command. The controller should account for the non-linear transformation from local accelerations to body rates. Note that the drone's mass should be accounted for when calculating the target angles.
+
+The roll-pitch controller is a P controller responsible for commanding the roll and pitch rates ( `pc` and `qc` ) in the body frame. It sets the desired rate of change of the given matrix elements using a P controller.
+### python
+![equations roll pitch](/images/python-roll-pitch1.png)
+where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converted into angular velocities into the body frame by a matrix multiplication:
+![matrix multiplication](/images/python-matrix-multiplication.png)
+
+``` python
+    # R13
+    b_x = rotation_matrix[0,2]
+    b_x_error = (acceleration_cmd[0] - b_x) 
+    b_x_commanded_dot = self.kp_roll * b_x_error #/ c_d
+        
+    # R23
+    b_y = rotation_matrix[1,2]
+    b_y_error = (acceleration_cmd[1] - b_y) 
+    b_y_commanded_dot = self.kp_pitch * b_y_error #/ c_d
+        
+    rotation_matrix_update = np.array([[rotation_matrix[1,0], -rotation_matrix[0,0]],
+                                      [rotation_matrix[1,1], -rotation_matrix[0,1]]]) / rotation_matrix[2,2]
+        
+    rotation_rate = np.matmul(rotation_matrix_update,
+                            np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
+```
+The rotation matrix looks like:
+![rotation matrix](/images/python-rotation-matrix)
+
+### C++
 
 ## Implement altitude control in python.
 The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
@@ -100,7 +126,10 @@ The controller should use the local NE position and velocity to generate a comma
 The controller can be a linear/proportional heading controller to yaw rate commands (non-linear transformation not required).
 
 ## Implement calculating the motor commands given commanded thrust and moments in C++.
-The thrust and moments should be converted to the appropriate 4 different desired thrust forces for the moments. Ensure that the dimensions of the drone are properly accounted for when calculating thrust from moments.
+> The thrust and moments should be converted to the appropriate 4 different desired thrust forces for the moments. Ensure that the dimensions of the drone are properly accounted for when calculating thrust from moments.
+
+The method `GenerateMotorCommands` is the first modification I have done. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
+![result](/images/cpp-motors-thrusts.png)
 
 # EVALUATION:
 ## Your python controller is successfully able to fly the provided test trajectory, meeting the minimum flight performance metrics.
