@@ -5,6 +5,7 @@
 In this project a low level flight controller is implemented in python and further modified in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
 Nested control loops are commanded by using a position, velocity, attitude and body rates.
 
+## PYTHON intro
 In python most of the code is written in `controller.py` where you find the most important methods in the `NonLinearController` class. The methods that we implemented are:
 * body rate controller: a porportional controller on body rates.
 * altitude controller: a controller that uses a down and down velocity to command thrust. 
@@ -28,23 +29,38 @@ running the code in python `python controls_flyer.py` result into the following:
 ![result](/images/python-result-controls-flyer.png)
 
 
+## C++ intro
+> All implemented code can be found in QuadControl.cpp. 
+In my opinion, it was a lot more difficult and definitely not as straight forward after the python code. Especially the parameters is a work that I struggle with. The parameters can be found in the `config/QuadControlParams.txt` file. 
+For C++ a different simulation with more real limits is used. Each scenario in the simulation runs in a loop and each loop ends in a PASS or FAIL result. 
 
+Before we start implementing the controllers, the method `GenerateMotorCommands` needs to be modified. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
+![result](/images/cpp-motors-thrusts.png)
 
-
-
-
-## 1. Implemented body rate control in python and C++.
+# 1. Implemented body rate control in python and C++.
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
 
-#### python
+### python
 parameters: 
-
-![param body rate](/images/python-param-body-rate.png)
+`kp_p=0.11` 
+`kp_q=0.11` 
+`kp_r=0.11`
 
 The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
 
 ![equations body rate](/images/python-equations-body-rate.png)
+``` python
+    p_error = body_rate_cmd[0] - body_rate[0]
+    u_bar_p = self.kp_p * p_error
+    q_error = body_rate_cmd[1] - body_rate[1]
+    u_bar_q = self.kp_q * q_error
+    r_error = body_rate_cmd[2] - body_rate[2]
+    u_bar_r = self.kp_r * r_error
+        
+    u_cmd = np.array([u_bar_p,u_bar_q,u_bar_r])
+```
 
+### C++
 
 
 
