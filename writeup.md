@@ -40,7 +40,7 @@ running the code in python `python controls_flyer.py` result into the following:
 parameters: ![param body rate](/images/python-param-body-rate.png)
 
 The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
-![equations body rate](/images/python-equations-body-rate)
+![equations body rate](/images/python-equations-body-rate.png)
 
 
 
