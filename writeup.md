@@ -1,5 +1,8 @@
 # WRITE-UP FCND CONTROLS
-In this project a low level flight controller is implemented in python and further modfied in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
+
+> A note before I start: Programming the controller wasn't easy, and especially setting the parameters provided the necessary headaches and is more than time consuming. 
+
+In this project a low level flight controller is implemented in python and further modified in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
 Nested control loops are commanded by using a position, velocity, attitude and body rates.
 
 In python most of the code is written in `controller.py` where you find the most important methods in the `NonLinearController` class. The methods that we implemented are:
@@ -11,7 +14,19 @@ In python most of the code is written in `controller.py` where you find the most
 
 ![Control Structure](/images/ControlStructure.png)
 
-> Note: Programming the controller wasn't easy, and especially setting the parameters provided the necessary headaches. 
+Lots of the underlying python code was provided by UDACITY as a collection of python package. Run the following command to activate the collection or environment: `source activate fcnd`.  
+The simulator works in the same way as in the previous projects and the start screen looks as:
+![Controls Simulator](/images/python-simulator.png)
+
+running the code in python `python controls_flyer.py` result into the following:
+###simulator
+![result](/images/python-result.gif)
+
+###terminal output
+![result](/images/python-result-controls-flyer.png)
+
+In C++ on the other  
+
 
 
 ## 1. Implemented body rate control in python and C++.
