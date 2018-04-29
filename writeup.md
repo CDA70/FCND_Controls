@@ -37,7 +37,8 @@ For C++ a different simulation with more real limits is used. Each scenario in t
 Before we start implementing the controllers, the method `GenerateMotorCommands` needs to be modified. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
 ![result](/images/cpp-motors-thrusts.png)
 
-# 1. Implemented body rate control in python and C++.
+
+## 1. Implemented body rate control in python and C++.
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
 
 ### python
@@ -61,7 +62,23 @@ The commanded roll, pitch, and yaw are collected by the body rate controller and
 ```
 
 ### C++
+parameters:
+`kpPQR =  80,80,5`
+Without the `kpPQR`, the drone keeps flipping. it's hard to find a good value, but at least I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and define the mass moment of inertia.
 
+The the commanded thrust is the mass moment of the inertia `*` the error of the desired body rates `*`` the kpPQR parameter
+
+``` C++
+V3F momentCmd;
+V3F Inertia;
+V3F p_error = pqrCmd - pqr;
+    
+Inertia.x = Ixx;
+Inertia.y = Iyy;
+Inertia.z = Izz;
+   
+momentCmd = Inertia * p_error * kpPQR;
+```
 
 
 
