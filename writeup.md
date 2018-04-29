@@ -87,6 +87,7 @@ The roll-pitch controller is a P controller responsible for commanding the roll 
 ### python
 ![equations roll pitch](/images/python-roll-pitch1.png)
 where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converted into angular velocities into the body frame by a matrix multiplication:
+
 ![matrix multiplication](/images/python-matrix-multiplication.png)
 
 ``` python
@@ -106,8 +107,23 @@ where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converte
     rotation_rate = np.matmul(rotation_matrix_update,
                             np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
 ```
-The rotation matrix looks like:
+The rotation matrix is as follows and be implement as: 
+
 ![rotation matrix](/images/python-rotation-matrix.png)
+
+``` python
+    r_x = np.array([[1, 0, 0],
+                    [0, cos(roll), -sin(roll)],
+                    [0, sin(roll), cos(roll)]])
+    
+    r_y = np.array([[cos(pitch), 0, sin(pitch)],
+                    [0, 1, 0],
+                    [-sin(pitch), 0, cos(pitch)]])
+        
+    r_z = np.array([[cos(yaw), -sin(yaw), 0],
+                    [sin(yaw), cos(yaw), 0],
+                    [0,0,1]])
+```
 
 ### C++
 
