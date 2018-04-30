@@ -13,6 +13,8 @@ In python most of the code is written in `controller.py` where you find the most
 * roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
 * lateral positon controller: a linear position controller using local north east position and local north/east velocity.
 
+The following images are provided by UDACITY and clearly explains the quadcopter controls architecture that we can use throughout the project.
+
 ![Control Structure](/images/control1.png)
 
 The altitude controller breaks down as:
@@ -40,7 +42,7 @@ For C++ a different simulation with more real limits is used. Each scenario in t
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
 
 ### python
-parameters: 
+env. parameters: 
 `kp_p=0.11` 
 `kp_q=0.11` 
 `kp_r=0.11`
@@ -48,6 +50,7 @@ parameters:
 The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
 
 ![equations body rate](/images/python-equations-body-rate.png)
+
 ``` python
     p_error = body_rate_cmd[0] - body_rate[0]
     u_bar_p = self.kp_p * p_error
@@ -60,7 +63,7 @@ The commanded roll, pitch, and yaw are collected by the body rate controller and
 ```
 
 ### C++
-parameters:
+env. parameters:
 `kpPQR =  80,80,5`
 
 Without the `kpPQR`, the drone keeps flipping. it's hard to find a good value, but i belive I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and defining the mass moment of inertia.
@@ -85,21 +88,29 @@ momentCmd = Inertia * p_error * kpPQR;
 
 The roll-pitch controller is a P controller responsible for commanding the roll and pitch rates ( `pc` and `qc` ) in the body frame. It sets the desired rate of change of the given matrix elements using a P controller.
 ### python
+env. parameters:
+`kp_roll`, 
+`kp_pitch`
+
 ![equations roll pitch](/images/python-roll-pitch1.png)
+
 where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converted into angular velocities into the body frame by a matrix multiplication:
 
 ![matrix multiplication](/images/python-matrix-multiplication.png)
 
+
 ``` python
+    c = -thrust_cmd/DRONE_MASS_KG
+
     # R13
     b_x = rotation_matrix[0,2]
-    b_x_error = (acceleration_cmd[0] - b_x) 
-    b_x_commanded_dot = self.kp_roll * b_x_error #/ c_d
+    b_x_error = (acceleration_cmd[0] - b_x)  / c
+    b_x_commanded_dot = self.kp_roll * b_x_error 
         
     # R23
     b_y = rotation_matrix[1,2]
-    b_y_error = (acceleration_cmd[1] - b_y) 
-    b_y_commanded_dot = self.kp_pitch * b_y_error #/ c_d
+    b_y_error = (acceleration_cmd[1] - b_y) / c
+    b_y_commanded_dot = self.kp_pitch * b_y_error 
         
     rotation_matrix_update = np.array([[rotation_matrix[1,0], -rotation_matrix[0,0]],
                                       [rotation_matrix[1,1], -rotation_matrix[0,1]]]) / rotation_matrix[2,2]
@@ -107,6 +118,9 @@ where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converte
     rotation_rate = np.matmul(rotation_matrix_update,
                             np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
 ```
+
+The `c` is the acceleration that uses the parameter `thrust`. The minus is used because the thrust points downwards. The 'DRONE_MASS_KG` is the weigth of the drone and play an important effect on the thrust.
+
 The rotation matrix is as follows and be implement as: 
 
 ![rotation matrix](/images/python-rotation-matrix.png)
@@ -125,8 +139,9 @@ The rotation matrix is as follows and be implement as:
                     [0,0,1]])
 ```
 
+
 ### C++
-Parameters:
+env. Parameters:
 `kpBank`
 
 The parameter `kpBank` and `kpPQR` shall be tuned, but as I mentioned earlier, it's hard and has taken me endless time, I still try to understand the result.
@@ -157,14 +172,18 @@ The collThrustCmd is a force in Newton and must be converted in acceleration by 
 > Additionally, the C++ altitude controller should contain an integrator to handle the weight non-idealities presented in scenario 4.
 
 The altitude controller is a PD controller to control acceleration and can be expressed by the following linear equation:
+
 ![equations altitude](/images/altitude-equation.png)
 
 where R equals to: 
+
 ![altitude R](/images/altitude-r.png)
 
 in more details: 
 `x_dot_dot = cb_x`
+
 `y_dot_dot = cb_y`
+
 `z_dot_dot = cb_z + g`
 
 where `b_x = R13` , `b_y = R23` , `b_z = R33`, which are all elements of the Rotation matrix.
@@ -177,11 +196,11 @@ The PD controller outputs the u_bar and is seen as:
 
 ![altitude u_bar](/images/altitude-u-bar.png)
 
-u_bar = kp_z(z_t - z_a) + kd_z(z_dot_t - z_dot_a) + z_dot_dot_t
+`u_bar = kp_z(z_t - z_a) + kd_z(z_dot_t - z_dot_a) + z_dot_dot_t`
 
 ### python
-parameters:
-`kp_z`
+env. parameters:
+`kp_z`, 
 `kd_z`
 
 ``` python
@@ -198,9 +217,9 @@ parameters:
 keep in mind the GRAVITY that will influence the thrust:  `(u_1_bar - GRAVITY) / b_z`
 
 ### C++
-parameters:
-`kpPosZ` 
-`kpVelZ`
+env. parameters:
+`kpPosZ`,  
+`kpVelZ`, 
 `KiPosZ`
 
 We added the integral control to help with the different masses of the vehicle as despicted in scenario 4.
@@ -224,16 +243,112 @@ The CONSTRAIN is very useful and replaces the previous IF control structure.
 ```
 
 ## Implement lateral position control in python and C++.
-The controller should use the local NE position and velocity to generate a commanded local acceleration.
+> The controller should use the local NE position and velocity to generate a commanded local acceleration.
+
+Like the altitude controller, the lateral position controller is a PD controller to command target values for elements of the drone's rotation matrix. It generates lateral acceleration by changing the body orientation which results in non-zero in either `x` and `y` direction. The follwing equation shows the commanded rotation matrix elements `b_x_c`, but the same applies for `b_y_c`
+
+![lateral controller](/images/lateral-controller1.png)
+
+
+### python
+env. parameters:
+`kp_x`, 
+`kd_x`, 
+`kp_y`, 
+`kd_y`
+
+``` python
+    x_error = local_position_cmd[0] - local_position[0]
+    x_error_dot = local_velocity_cmd[0] - local_velocity[0]
+    p_term_x = self.kp_x * x_error
+    d_term_x = self.kd_x * x_error_dot
+    x_dot_dot_command = p_term_x + d_term_x + acceleration_ff[0]
+        
+    y_error = local_position_cmd[1] - local_position[1]
+    y_error_dot = local_velocity_cmd[1] - local_velocity[1]
+    p_term_y = self.kp_y * y_error
+    d_term_y = self.kd_y * y_error_dot
+    y_dot_dot_command = p_term_y + d_term_y + acceleration_ff[1]
+```
+
+
+### C++
+env. parameters:
+`kpPosXY`, 
+`kpVelXY`
+
+
+``` C++
+    velCmd.x = CONSTRAIN(velCmd.x, -maxSpeedXY, maxSpeedXY);
+    velCmd.y = CONSTRAIN(velCmd.y, -maxSpeedXY, maxSpeedXY);
+    
+    V3F position_error = posCmd - pos;
+    V3F velocity_error = velCmd - vel;
+    
+    V3F pos_term = kpPosXY * position_error;
+    V3F vel_term = kpVelXY * velocity_error;
+    
+    accelCmd = pos_term + vel_term + accelCmd;
+    accelCmd.x = CONSTRAIN(accelCmd.x, -maxAccelXY, maxAccelXY);
+    accelCmd.y = CONSTRAIN(accelCmd.y, -maxAccelXY, maxAccelXY);
+```
+The function `CONSTRAIN` is used to limit to range of `maxSpeedXY` and `maxAccelXY `. 
 
 ## Implement yaw control in python and C++.
-The controller can be a linear/proportional heading controller to yaw rate commands (non-linear transformation not required).
+> The controller can be a linear/proportional heading controller to yaw rate commands (non-linear transformation not required).
+
+Unlike the altitude and the lateral controller, the yaw is a P controller and the equation is fairly simple to implement.
+
+![yaw controller](/images/yaw-controller1.png)
+
+### python
+env. parameters: 
+`kp_yaw`
+
+``` python
+    yaw_cmd = np.mod(yaw_cmd, 2.0*np.pi)
+    yaw_error = yaw_cmd - yaw
+    yaw_rate = self.kp_yaw * yaw_error
+```
+
+### C++
+env. parameters:
+`kpYaw`
+
+``` C++
+    float yaw_error = yawCmd - yaw;
+    yawRateCmd = kpYaw * yaw_error;
+```
 
 ## Implement calculating the motor commands given commanded thrust and moments in C++.
 > The thrust and moments should be converted to the appropriate 4 different desired thrust forces for the moments. Ensure that the dimensions of the drone are properly accounted for when calculating thrust from moments.
 
-The method `GenerateMotorCommands` is the first modification I have done. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
-![result](/images/cpp-motors-thrusts.png)
+The method `GenerateMotorCommands` is the code that I started with. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
+
+The result must be a total force:
+* total force: `F_total = F0 + F1 + F2 + F3`
+* roll:        `tau_x = (F0 - F1 + F2 - F2) * l`
+* pitch:       `tau_y = (F0 + F1 - F2 - F3) * l`
+* yaw:         `tau_z = (-F0 + F1 + F2 - F3) * kappa`
+
+`l` is the length and is defined as half the distance between the rotors
+`l = L / sqrt(2)`
+
+Input parameters  `collThrustCmd, momentCmd` with the desired rotation moment is given and it provides the `F_total, tau_x, tau_y, tau_z`. 
+with these values we can further calculate the thrust command.
+
+``` C++
+    float length = L / sqrt(2.f);
+    float thrust_x = momentCmd.x / length;
+    float thrust_y = momentCmd.y / length;
+    float thrust_z = -momentCmd.z / kappa; // kappa = torque (Nm) produced by motor per N of thrust produced
+    
+    cmd.desiredThrustsN[0] = ( thrust_x + thrust_y + thrust_z + collThrustCmd) / 4.f; //front left
+    cmd.desiredThrustsN[1] = (-thrust_x + thrust_y - thrust_z + collThrustCmd) / 4.f; //front right
+    cmd.desiredThrustsN[2] = ( thrust_x - thrust_y - thrust_z + collThrustCmd) / 4.f; // rear left
+    cmd.desiredThrustsN[3] = (-thrust_x - thrust_y + thrust_z + collThrustCmd) / 4.f; //rear right
+```
+
 
 # EVALUATION:
 ## Your python controller is successfully able to fly the provided test trajectory, meeting the minimum flight performance metrics.

@@ -121,7 +121,6 @@ class NonlinearController(object):
         """
         x_error = local_position_cmd[0] - local_position[0]
         x_error_dot = local_velocity_cmd[0] - local_velocity[0]
-        #x_dot_dot_command = self.kp_x * x_error + self.kd_x * 
         p_term_x = self.kp_x * x_error
         d_term_x = self.kd_x * x_error_dot
         x_dot_dot_command = p_term_x + d_term_x + acceleration_ff[0]
@@ -176,7 +175,7 @@ class NonlinearController(object):
         Returns: 2-element numpy array, desired rollrate (p) and pitchrate (q) commands in radians/s
         """
         rotation_matrix = self.R(attitude)
-        #c_d = thrust_cmd/DRONE_MASS_KG
+        c_d = -thrust_cmd/DRONE_MASS_KG
        
         # R13
         b_x = rotation_matrix[0,2]
