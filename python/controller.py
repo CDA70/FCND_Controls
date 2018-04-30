@@ -28,7 +28,7 @@ class NonlinearController(object):
         kp_z=35.0,
         kd_z=25.0,
         # Yaw parameter
-        kp_yaw=0.9,
+        kp_yaw=0.15,
         # Roll Pitch parameters
         kp_roll=10.0,  
         kp_pitch=10.0, 

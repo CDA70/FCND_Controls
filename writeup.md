@@ -152,7 +152,70 @@ The collThrustCmd is a force in Newton and must be converted in acceleration by 
 
 
 ## Implement altitude control in python.
-The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
+> The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
+
+The altitude controller is a PD controller to control acceleration and can be expressed by the following linear equation:
+![equations altitude](/images/altitude-equation.png)
+
+where R equals to: 
+![altitude R](/images/altitude-r.png)
+
+in more details: 
+`x_dot_dot = cb_x`
+`y_dot_dot = cb_y`
+`z_dot_dot = cb_z + g`
+
+where `b_x = R13` , `b_y = R23` , `b_z = R33`, which are all elements of the Rotation matrix.
+The vertical acceleration is controlled by: 
+![altitude vertical acceleration](/images/altitude-vertical-acceleration.png)
+
+The PD controller outputs the u_bar and is seen as:
+![altitude u_bar](/images/altitude-u-bar.png)
+u_bar = kp_z(z_t - z_a) + kd_z(z_dot_t - z_dot_a) + z_dot_dot_t
+
+### python
+parameters:
+`kp_z`
+`kd_z`
+
+``` python
+    z_error = altitude_cmd - altitude
+    z_error_dot = vertical_velocity_cmd - vertical_velocity
+        
+    b_z = self.R(attitude)[2,2]
+        
+    p_term = self.kp_z * z_error
+    d_term = self.kd_z * z_error_dot
+        
+    u_1_bar = p_term + d_term + acceleration_ff
+```
+keep in mind the GRAVITY that will influence the thrust:  `(u_1_bar - GRAVITY) / b_z`
+
+### C++
+parameters:
+`kpPosZ` 
+`kpVelZ`
+`KiPosZ`
+
+We added the integral control to help with the different masses of the vehicle as despicted in scenario 4.
+The CONSTRAIN is very useful and replaces the previous IF control structure.
+``` C++
+    float z_error = posZCmd - posZ;
+    float z_error_dot = velZCmd - velZ;
+    float b_z = R(2,2);
+    
+    float p_term = kpPosZ * z_error;
+    float d_term = kpVelZ * z_error_dot;
+    
+    integratedAltitudeError = integratedAltitudeError + (z_error * dt);
+    float i_term = KiPosZ * integratedAltitudeError;
+    
+    float u_1_bar = p_term + d_term + accelZCmd + i_term;
+    
+    float acceleration = (u_1_bar - CONST_GRAVITY) / b_z;
+    
+    thrust = - mass * CONSTRAIN(acceleration, - maxAscentRate / dt, maxAscentRate / dt);
+```
 
 ## Implement altitude controller in C++.
 The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
