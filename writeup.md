@@ -154,6 +154,8 @@ The collThrustCmd is a force in Newton and must be converted in acceleration by 
 ## Implement altitude control in python.
 > The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
 
+> Additionally, the C++ altitude controller should contain an integrator to handle the weight non-idealities presented in scenario 4.
+
 The altitude controller is a PD controller to control acceleration and can be expressed by the following linear equation:
 ![equations altitude](/images/altitude-equation.png)
 
@@ -216,11 +218,6 @@ The CONSTRAIN is very useful and replaces the previous IF control structure.
     
     thrust = - mass * CONSTRAIN(acceleration, - maxAscentRate / dt, maxAscentRate / dt);
 ```
-
-## Implement altitude controller in C++.
-The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
-
-Additionally, the C++ altitude controller should contain an integrator to handle the weight non-idealities presented in scenario 4.
 
 ## Implement lateral position control in python and C++.
 The controller should use the local NE position and velocity to generate a commanded local acceleration.
