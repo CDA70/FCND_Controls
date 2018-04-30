@@ -298,7 +298,7 @@ The function `CONSTRAIN` is used to limit to range of `maxSpeedXY` and `maxAccel
 
 Unlike the altitude and the lateral controller, the yaw is a P controller and the equation is fairly simple to implement.
 
-![yaw controller](/images/yaw-controller1.png)
+![yaw controller](/images/yaw-controller1.PNG)
 
 ### python
 env. parameters: 
