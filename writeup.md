@@ -168,7 +168,9 @@ in more details:
 `z_dot_dot = cb_z + g`
 
 where `b_x = R13` , `b_y = R23` , `b_z = R33`, which are all elements of the Rotation matrix.
-The vertical acceleration is controlled by: 
+
+The vertical acceleration is controlled by:
+
 ![altitude vertical acceleration](/images/altitude-vertical-acceleration.png)
 
 The PD controller outputs the u_bar and is seen as:
