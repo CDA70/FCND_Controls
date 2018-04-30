@@ -174,7 +174,9 @@ The vertical acceleration is controlled by:
 ![altitude vertical acceleration](/images/altitude-vertical-acceleration.png)
 
 The PD controller outputs the u_bar and is seen as:
+
 ![altitude u_bar](/images/altitude-u-bar.png)
+
 u_bar = kp_z(z_t - z_a) + kd_z(z_dot_t - z_dot_a) + z_dot_dot_t
 
 ### python
