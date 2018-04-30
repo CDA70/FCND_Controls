@@ -247,8 +247,7 @@ The CONSTRAIN is very useful and replaces the previous IF control structure.
 
 Like the altitude controller, the lateral position controller is a PD controller to command target values for elements of the drone's rotation matrix. It generates lateral acceleration by changing the body orientation which results in non-zero in either `x` and `y` direction. The follwing equation shows the commanded rotation matrix elements `b_x_c`, but the same applies for `b_y_c`
 
-![lateral controller](/images/lateral-controller1.png)
-
+![lateral controller](/images/lateral-controller1.PNG)
 
 ### python
 env. parameters:
