@@ -2,13 +2,13 @@
 
 > A note before I start: Programming the controller wasn't easy, and especially setting the parameters provided the necessary headaches and is more than time consuming. 
 
-In this project a low level flight controller is implemented in python and further modified in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands will be passed as three directional body moments and thrust. 
+In this project a low level flight controller is implemented in python and further modified in C++. In the previous projects, commanded positions were passed to the simulation, whereas in this project, commands are passed as three directional body moments and thrust. 
 Nested control loops are commanded by using a position, velocity, attitude and body rates.
 
 ## PYTHON intro
 In python most of the code is written in `controller.py` where you find the most important methods in the `NonLinearController` class. The methods that we implemented are:
 * body rate controller: a porportional controller on body rates.
-* altitude controller: a controller that uses a down and down velocity to command thrust. 
+* altitude controller: a controller that uses a down velocity to command thrust. 
 * yaw controller: a linear / proportional heading controller to yaw rate commands.
 * roll pitch controller: an attitude controller that uses local acceleration commands and outputs body rate commands.
 * lateral positon controller: a linear position controller using local north east position and local north/east velocity.
@@ -21,31 +21,26 @@ The altitude controller breaks down as:
 ![Control Structure](/images/control2.png)
 
 
-Lots of the underlying python code was provided by UDACITY as a collection of python package. Run the following command to activate the collection or environment: `source activate fcnd`.  
+UDACITY provided a collection of python packages and the environment can be simply activated by running the command: `source activate fcnd`.  
 The simulator works in the same way as in the previous projects and the start screen looks as:
 ![Controls Simulator](/images/python-simulator.png)
-
-running the code in python `python controls_flyer.py` result into the following:
-
-### terminal output
-![result](/images/python-result-controls-flyer.png)
 
 
 ## C++ intro
 > All implemented code can be found in QuadControl.cpp. 
 
-In my opinion, it was a lot more difficult and definitely not as straight forward after the python code. Especially the parameters is a work that I struggle with. The parameters can be found in the `config/QuadControlParams.txt` file. 
+In my opinion, it was a lot more difficult and definitely not as straight forward after the python code. Especially tuning the  parameters is very cumbersome and something I struggled with. The parameters can be found in the `config/QuadControlParams.txt` file. 
 
-For C++ a different simulation with more real limits is used. Each scenario in the simulation runs in a loop and each loop ends in a PASS or FAIL result. 
+For C++ a different simulation with more real limits is used. Each scenario in the simulation runs in a loop and each loop ends in a PASS or FAIL result and are presented at the end of the write-up 
 
 ## 1. Implemented body rate control in python and C++.
 > The controller should be a proportional controller on body rates to commanded moments. The controller should take into account the moments of inertia of the drone when calculating the commanded moments.
 
 ### python
-env. parameters: 
-`kp_p=0.11` 
-`kp_q=0.11` 
-`kp_r=0.11`
+Tuning parameters: 
+`kp_p` 
+`kp_q` 
+`kp_r`
 
 The commanded roll, pitch, and yaw are collected by the body rate controller and translated in rotational accelerations along the axis in the body frame
 
@@ -63,12 +58,12 @@ The commanded roll, pitch, and yaw are collected by the body rate controller and
 ```
 
 ### C++
-env. parameters:
-`kpPQR =  80,80,5`
+Tuning parameters:
+`kpPQR`
 
-Without the `kpPQR`, the drone keeps flipping. it's hard to find a good value, but i belive I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and defining the mass moment of inertia.
+Without the `kpPQR`, the drone keeps flipping. It's hard to find a good value, but I hope I managed to tune the parameter. The `Ixx Iyy Izz` are part of the `BaseController` and defining the mass moment of inertia.
 
-The commanded thrust is the mass moment of the inertia `*` the error of the desired body rates `*`` the kpPQR parameter
+The commanded thrust is the mass moment of the inertia.
 
 ``` C++
 V3F momentCmd;
@@ -88,7 +83,7 @@ momentCmd = Inertia * p_error * kpPQR;
 
 The roll-pitch controller is a P controller responsible for commanding the roll and pitch rates ( `pc` and `qc` ) in the body frame. It sets the desired rate of change of the given matrix elements using a P controller.
 ### python
-env. parameters:
+Tuning parameters:
 `kp_roll`, 
 `kp_pitch`
 
@@ -100,16 +95,15 @@ where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converte
 
 
 ``` python
-    c = -thrust_cmd/DRONE_MASS_KG
 
     # R13
     b_x = rotation_matrix[0,2]
-    b_x_error = (acceleration_cmd[0] - b_x)  / c
+    b_x_error = (acceleration_cmd[0] - b_x)  
     b_x_commanded_dot = self.kp_roll * b_x_error 
         
     # R23
     b_y = rotation_matrix[1,2]
-    b_y_error = (acceleration_cmd[1] - b_y) / c
+    b_y_error = (acceleration_cmd[1] - b_y) 
     b_y_commanded_dot = self.kp_pitch * b_y_error 
         
     rotation_matrix_update = np.array([[rotation_matrix[1,0], -rotation_matrix[0,0]],
@@ -118,8 +112,6 @@ where `b_x_a = R13` and `b_y_a = R23.` The values of R13 and R23 can be converte
     rotation_rate = np.matmul(rotation_matrix_update,
                             np.array([b_x_commanded_dot,b_y_commanded_dot]).T)
 ```
-
-The `c` is the acceleration that uses the parameter `thrust`. The minus is used because the thrust points downwards. The 'DRONE_MASS_KG` is the weigth of the drone and play an important effect on the thrust.
 
 The rotation matrix is as follows and be implement as: 
 
@@ -141,10 +133,11 @@ The rotation matrix is as follows and be implement as:
 
 
 ### C++
-env. Parameters:
+Tuning Parameters:
 `kpBank`
 
-The parameter `kpBank` and `kpPQR` shall be tuned, but as I mentioned earlier, it's hard and has taken me endless time, I still try to understand the result.
+The parameter `kpBank` and `kpPQR` shall be tuned, but as I mentioned earlier, it's hard and it took sooooo and tooooo much time
+.
 The collThrustCmd is a force in Newton and must be converted in acceleration by dividing it by MASS. Keep in mind the downwards effect, hence the `-` negative in front of collThrustCmd
 
 ``` c++
@@ -199,7 +192,7 @@ The PD controller outputs the u_bar and is seen as:
 `u_bar = kp_z(z_t - z_a) + kd_z(z_dot_t - z_dot_a) + z_dot_dot_t`
 
 ### python
-env. parameters:
+Tuning parameters:
 `kp_z`, 
 `kd_z`
 
@@ -217,13 +210,13 @@ env. parameters:
 keep in mind the GRAVITY that will influence the thrust:  `(u_1_bar - GRAVITY) / b_z`
 
 ### C++
-env. parameters:
+Tuning parameters:
 `kpPosZ`,  
 `kpVelZ`, 
 `KiPosZ`
 
 We added the integral control to help with the different masses of the vehicle as despicted in scenario 4.
-The CONSTRAIN is very useful and replaces the previous IF control structure.
+The CONSTRAIN is very useful and replaces my previous IF control structure (many thanks to UDACITY for the very good tip).
 ``` C++
     float z_error = posZCmd - posZ;
     float z_error_dot = velZCmd - velZ;
@@ -250,7 +243,7 @@ Like the altitude controller, the lateral position controller is a PD controller
 ![lateral controller](/images/lateral-controller1.PNG)
 
 ### python
-env. parameters:
+Tuning parameters:
 `kp_x`, 
 `kd_x`, 
 `kp_y`, 
@@ -272,7 +265,7 @@ env. parameters:
 
 
 ### C++
-env. parameters:
+Tuning parameters:
 `kpPosXY`, 
 `kpVelXY`
 
@@ -301,7 +294,7 @@ Unlike the altitude and the lateral controller, the yaw is a P controller and th
 ![yaw controller](/images/yaw-controller1.PNG)
 
 ### python
-env. parameters: 
+Tuning parameters: 
 `kp_yaw`
 
 ``` python
@@ -311,7 +304,7 @@ env. parameters:
 ```
 
 ### C++
-env. parameters:
+Tuning parameters:
 `kpYaw`
 
 ``` C++
@@ -322,7 +315,7 @@ env. parameters:
 ## Implement calculating the motor commands given commanded thrust and moments in C++.
 > The thrust and moments should be converted to the appropriate 4 different desired thrust forces for the moments. Ensure that the dimensions of the drone are properly accounted for when calculating thrust from moments.
 
-The method `GenerateMotorCommands` is the code that I started with. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
+The method `GenerateMotorCommands` is the code where I started with. The method converts a desired 3-axis moment and collective thrust command to individual motor thrust commands. 
 
 The result must be a total force:
 * total force: `F_total = F0 + F1 + F2 + F3`
@@ -351,9 +344,71 @@ with these values we can further calculate the thrust command.
 
 # EVALUATION:
 ## Your python controller is successfully able to fly the provided test trajectory, meeting the minimum flight performance metrics.
-For this, your drone must pass the provided evaluation script with the default parameters. These metrics being, your drone flies the test trajectory faster than 20 seconds, the maximum horizontal error is less than 2 meters, and the maximum vertical error is less than 1 meter.
+> For this, your drone must pass the provided evaluation script with the default parameters. These metrics being, your drone flies the test trajectory faster than 20 seconds, the maximum horizontal error is less than 2 meters, and the maximum vertical error is less than 1 meter.
+
+The drone can flies the test trajectory by executing `python controls_flyer.py`. The terminal output shows a successful mission: 
+
+![result](/images/python-result-controls-flyer.png)
+
+the trajectory can be displayed in a 2D chart representation by using [`VisDom`](https://github.com/facebookresearch/visdom)
+
+![2D charts](/images/python-visdom-2D-chart.png)
+
+I used GIPHY to capture a gif from executing the Python code, but apparently GIPHY only captures 30 sec. Most of the flight is capture, especially most of the waypoint phase is recorded. The arming, takeoff, landing disarming are not in the gif included.
+
+![python flight](/images/python-controls-flyer.gif)
 
 ## Your C++ controller is successfully able to fly the provided test trajectory and visually passes inspection of the scenarios leading up to the test trajectory.
-Ensure that in each scenario the drone looks stable and performs the required task. Specifically check that the student's controller is able to handle the non-linearities of scenario 4 (all three drones in the scenario should be able to perform the required task with the same control gains used).
+> Ensure that in each scenario the drone looks stable and performs the required task. Specifically check that the student's controller is able to handle the non-linearities of scenario 4 (all three drones in the scenario should be able to perform the required task with the same control gains used).
 
+It wasn't easy to handle the `tuning parameters`. I'm sure that the result can be improved, but I have a hard time understanding the relationship between the code debugging and tuning of parameters.
 
+### Scenario 1 - Intro:
+In scenario 1, the thrust was simply `cmd.desiredThrustsN[0] = mass * 9.81f / 4` where mass was equal to 0.4 kg and made the quadcopter falling down. Increasing the mass to __0.5 kg__ ensured a proper hover of the quadcopter.
+
+![C++ Scenario 1](/images/cpp-Scenario1.gif)
+
+PASS: ABS(Quad.PosFollowErr) was less than 0.500000 for at least 0.800000 seconds
+
+### Scenario 2 - attitude control:
+In scenario 2, roll and pitch is tested. The requirement is to stabalize the rotational motion of the controller.
+
+![C++ Scenario 3](/images/cpp-scenario2.gif)
+
+PASS: ABS(Quad.Roll) was less than 0.025000 for at least 0.750000 seconds
+PASS: ABS(Quad.Omega.X) was less than 2.500000 for at least 0.750000 seconds
+
+### Scenario 3 - position control:
+In scenario 3 the position, altitude and yaw are tested. Two identical quads, one offset from its target point (but initialized with yaw = 0) and second offset from target point but yaw = 45 degrees.
+
+![C++ Scenario 3](/images/cpp-scenario3.gif)
+
+PASS: ABS(Quad1.Pos.X) was less than 0.100000 for at least 1.250000 seconds
+PASS: ABS(Quad2.Pos.X) was less than 0.100000 for at least 1.250000 seconds
+PASS: ABS(Quad2.Yaw) was less than 0.100000 for at least 1.000000 seconds
+
+### Scenario 4 - Non Idealities
+In this scenario, the robustness of the controller is tested. Three quads are all trying to move one meter forward. However, this time, these quads are all a bit different:
+
+* The green quad has its center of mass shifted back
+* The orange vehicle is an ideal quad
+* The red vehicle is heavier than usual
+
+![C++ Scenario 4](/images/cpp-scenario4.gif)
+
+PASS: ABS(Quad1.PosFollowErr) was less than 0.100000 for at least 1.500000 seconds
+PASS: ABS(Quad2.PosFollowErr) was less than 0.100000 for at least 1.500000 seconds
+PASS: ABS(Quad3.PosFollowErr) was less than 0.100000 for at least 1.500000 seconds
+
+### Scenario 5 - Follow traject
+In scenario 5 the quad tries to follow a given trajectory. Unfortunately tuning the control parameters is very time consuming and I'm running out of time. I will further optimize the result, but this is result of the provided code.
+
+![C++ Scenario 5](/images/cpp-scenario5.gif)
+PASS: ABS(Quad2.PosFollowErr) was less than 0.250000 for at least 3.000000 seconds
+
+## next is a screenshot with the terminal output of the CPP results
+
+![C++ results](/images/cpp-results-all-scenarios.png)
+
+The project wasn't easy and provided lots of challenges, especially tuning the parameters was difficult. Also it's not easy to debug the program because the expected result of each variable isn't clear and requires the necessary experience. 
+At the end it was fun and I'm sure that the next lessons will provide some answers to better understand and tune the parameters.
