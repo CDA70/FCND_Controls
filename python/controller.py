@@ -28,7 +28,7 @@ class NonlinearController(object):
         kp_z=35.0,
         kd_z=25.0,
         # Yaw parameter
-        kp_yaw=0.9,
+        kp_yaw=0.15,
         # Roll Pitch parameters
         kp_roll=10.0,  
         kp_pitch=10.0, 
@@ -121,7 +121,6 @@ class NonlinearController(object):
         """
         x_error = local_position_cmd[0] - local_position[0]
         x_error_dot = local_velocity_cmd[0] - local_velocity[0]
-        #x_dot_dot_command = self.kp_x * x_error + self.kd_x * 
         p_term_x = self.kp_x * x_error
         d_term_x = self.kd_x * x_error_dot
         x_dot_dot_command = p_term_x + d_term_x + acceleration_ff[0]
@@ -176,17 +175,16 @@ class NonlinearController(object):
         Returns: 2-element numpy array, desired rollrate (p) and pitchrate (q) commands in radians/s
         """
         rotation_matrix = self.R(attitude)
-        #c_d = thrust_cmd/DRONE_MASS_KG
        
         # R13
         b_x = rotation_matrix[0,2]
         b_x_error = (acceleration_cmd[0] - b_x) 
-        b_x_commanded_dot = self.kp_roll * b_x_error #/ c_d
+        b_x_commanded_dot = self.kp_roll * b_x_error 
         
         # R23
         b_y = rotation_matrix[1,2]
         b_y_error = (acceleration_cmd[1] - b_y) 
-        b_y_commanded_dot = self.kp_pitch * b_y_error #/ c_d
+        b_y_commanded_dot = self.kp_pitch * b_y_error 
         
         rotation_matrix_update = np.array([[rotation_matrix[1,0], -rotation_matrix[0,0]],
                                            [rotation_matrix[1,1], -rotation_matrix[0,1]]]) / rotation_matrix[2,2]

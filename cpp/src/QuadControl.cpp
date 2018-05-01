@@ -78,10 +78,10 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
     cmd.desiredThrustsN[1] = (-thrust_x + thrust_y - thrust_z + collThrustCmd) / 4.f; //front right
     cmd.desiredThrustsN[2] = ( thrust_x - thrust_y - thrust_z + collThrustCmd) / 4.f; // rear left
     cmd.desiredThrustsN[3] = (-thrust_x - thrust_y + thrust_z + collThrustCmd) / 4.f; //rear right
-    //// cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-    //// cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-    //// cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-    //// cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+    //cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
+    //cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
+    //cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
+    //cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
 
     
     
